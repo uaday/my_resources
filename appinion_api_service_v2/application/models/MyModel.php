@@ -27,19 +27,26 @@ class MyModel extends CI_Model
 
     public function api_auth($username, $password)
     {
-        $q = $this->db2->select('password,id')->from('api_user')->where('username', $username)->get()->row();
+        $q = $this->db2->select('password,authorization,status')->from('api_user')->where('username', $username)->get()->row();
 
         if ($q == "") {
             return array('status' => 403, 'message' => 'Username not found.');
         } else {
             $hashed_password = $q->password;
-            $id = $q->id;
-
+            $authorization=$q->authorization;
+            $status=$q->status;
             if ($hashed_password == md5($password)) {
-                return array('status' => 200, 'message' => 'Successfully Api Connection.');
+                if($status=='1')
+                {
+                    return array('status' => 200, 'message' => 'Successfully Api Connection.','authorization'=>$authorization);
+                }
+                else
+                {
+                    return array('status' => 403, 'message' => 'Restricted permission');
+                }
             } else {
                 echo "Wrong password";
-                return array('status' => 403, 'message' => 'Wrong password.', 'api_user_id' => '', 'app_user_id' => '', 'token' => '');
+                return array('status' => 403, 'message' => 'Wrong password.');
             }
         }
 
@@ -184,6 +191,13 @@ class MyModel extends CI_Model
         $this->db2->select('app_user_id');
         $this->db2->from('api_users_authentication');
         $this->db2->where('token', $token);
+        return $this->db2->get()->row();
+    }
+    public function get_api_id($authorization)
+    {
+        $this->db2->select('id');
+        $this->db2->from('api_user');
+        $this->db2->where('authorization', $authorization);
         return $this->db2->get()->row();
     }
     
