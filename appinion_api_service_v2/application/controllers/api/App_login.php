@@ -20,22 +20,21 @@ class App_login extends CI_Controller {
                 $result=$this->MyModel->get_api_id($this->input->get_request_header('authorization', TRUE));
                 if($result->id!="")
                 {
-                    if($response['status'] == 200){
-                        if($_REQUEST)
+                    $response=null;
+                    if($_REQUEST)
+                    {
+                        $params = $_REQUEST;
+                        if($params['app_password']& $params['app_user_id'])
                         {
-                            $params = $_REQUEST;
-                            if($params['app_password']& $params['app_user_id'])
-                            {
-                                $app_user_id=$params['app_user_id'];
-                                $app_password=$params['app_password'];
-                                $response= $this->MyModel->app_login($app_user_id,$app_password);
-                                json_output($response['status'], $response);
+                            $app_user_id=$params['app_user_id'];
+                            $app_password=$params['app_password'];
+                            $response= $this->MyModel->app_login($result->id,$app_user_id,$app_password);
+                            json_output($response['status'], $response);
 
-                            }
-                        }else{
-                            $resp = 'Invalid Request!';
-                            json_output($response['status'],$resp);
                         }
+                    }else{
+                        $resp = 'Invalid Request!';
+                        json_output($response['status'],$resp);
                     }
                 }
                 else

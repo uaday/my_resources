@@ -42,7 +42,7 @@ class MyModel extends CI_Model
                 }
                 else
                 {
-                    return array('status' => 403, 'message' => 'Restricted permission');
+                    return array('status' => 403, 'message' => 'Permission restricted');
                 }
             } else {
                 echo "Wrong password";
@@ -52,7 +52,7 @@ class MyModel extends CI_Model
 
     }
 
-    public function app_login($app_user_id, $app_password)
+    public function app_login($api_id,$app_user_id, $app_password)
     {
         $q = $this->db->select('user_id,password')->from('tbl_app_user_login')->where('user_id', $app_user_id)->get()->row();
 
@@ -60,17 +60,17 @@ class MyModel extends CI_Model
             return array('status' => 403, 'message' => 'UserId not found.');
         } else {
             $hashed_password = $q->password;
-            $id = $q->id;
+            $id = $q->user_id;
             if ($hashed_password == md5($app_password)) {
                 $last_login = date('Y-m-d H:i:s');
                 $token = md5(uniqid());
                 $expired_at = date("Y-m-d H:i:s", strtotime('+12 hours'));
                 $this->db2->trans_start();
                 $this->db2->where('id', $id)->update('api_user', array('last_login' => $last_login));
-                $qq = $this->db2->select('id,app_user_id')->from('api_users_authentication')->where('app_user_id', $app_user_id)->get()->row();
+                $qq = $this->db2->select('id,app_user_id')->from('api_users_authentication')->where(array('app_user_id'=> $app_user_id,'api_user_id'=>$api_id))->get()->row();
                 if($qq== "")
                 {
-                    $this->db2->insert('api_users_authentication', array('api_user_id' => $id, 'token' => $token, 'app_user_id' => $app_user_id));
+                    $this->db2->insert('api_users_authentication', array('api_user_id' => $api_id, 'token' => $token, 'app_user_id' => $app_user_id));
                 }
                 else
                 {
@@ -78,10 +78,10 @@ class MyModel extends CI_Model
                 }
                 if ($this->db2->trans_status() === FALSE) {
                     $this->db2->trans_rollback();
-                    return array('status' => 500, 'message' => 'Internal server error.', 'api_user_id' => '', 'app_user_id' => '', 'token' => '');
+                    return array('status' => 500, 'message' => 'Internal server error.', 'app_user_id' => '', 'token' => '');
                 } else {
                     $this->db2->trans_commit();
-                    return array('status' => 200, 'message' => 'Successfully login.', 'api_user_id' => $id, 'app_user_id' => $app_user_id, 'token' => $token);
+                    return array('status' => 200, 'message' => 'Successfully login.', 'app_user_id' => $app_user_id, 'token' => $token);
                 }
             } else {
                 echo "Wrong password";
@@ -102,12 +102,13 @@ class MyModel extends CI_Model
                 $this->db->select('caregiver_user_id as id,caregiver_name as name,NID_number as nid,DOB as dob,gender,blood_group,phone_number,email,address,picture,joining_date,educational_background as education,tbl_caregiver_engagment_type_caregiver_engagment_type_id as engagement_type,tbl_level_care_type_level_care_type_id as level_id,tbl_app_user_type_app_user_type_id as user_type_id');
                 $this->db->from('tbl_caregiver_user');
                 $this->db->where('caregiver_user_id', $user_id);
-                return $this->db->get()->row();
+                return $this->db->get()->result();
+
             } else if($user_type == '2' && $status == 1) {
                 $this->db->select('patient_id as id,patient_name as name,NID_number as nid,DOB as dob,gender,blood_group,phone_number,email,address,picture,joining_date,tbl_level_care_type_level_care_type_id as level_id,tbl_app_user_type_app_user_type_id as user_type_id');
                 $this->db->from('tbl_patient_user');
                 $this->db->where('patient_id', $user_id);
-                return $this->db->get()->row();
+                return $this->db->get()->result();
             }
         }
         else
