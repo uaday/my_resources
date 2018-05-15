@@ -7,22 +7,30 @@ class Api_receiver{
         //define( 'API_ACCESS_KEY', 'AAAAwNVn9ys:APA91bE5qfRLwntb0QSsh98EOKOq6izr1hykDP1N9l-q8W05DMvR_bbzokYYx2vQlVYsnQJvmywobmzgTLxoS5U6VA923cmTeY5NVfZRU1s_QYV5_sMcaLsDWoFFpI8M-xCazARu3Lbt' );
     }
 
-    function curl_fun($url,$curl_data,$http_method)
+    function curl_fun($url,$curl_data,$http_method,$user_name,$password)
 	{
 		$curl = curl_init();
+		if($http_method=='POST')
+		{
+			curl_setopt_array($curl, array(
+				CURLOPT_URL => $url,
+				CURLOPT_RETURNTRANSFER => true,
+				CURLOPT_ENCODING => "",
+				CURLOPT_MAXREDIRS => 10,
+				CURLOPT_TIMEOUT => 30,
+				CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+				CURLOPT_CUSTOMREQUEST => $http_method,
+				CURLOPT_POSTFIELDS=>array(
+					'username:'. $user_name,
+					'password:' . $password
+				),
+				CURLOPT_HTTPHEADER => $curl_data,
+			));
+		}
 
-		curl_setopt_array($curl, array(
-			CURLOPT_URL => $url,
-			CURLOPT_RETURNTRANSFER => true,
-			CURLOPT_ENCODING => "",
-			CURLOPT_MAXREDIRS => 10,
-			CURLOPT_TIMEOUT => 30,
-			CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-			CURLOPT_CUSTOMREQUEST => $http_method,
-			CURLOPT_HTTPHEADER => $curl_data,
-		));
 
 		$response = curl_exec($curl);
+
 		$err = curl_error($curl);
 		curl_close($curl);
 
@@ -35,14 +43,14 @@ class Api_receiver{
 			return $response;
 		}
 	}
-    function api_init($url,$auth_key,$client_service,$content_type,$r_type,$http_method)
+    function api_init($url,$auth_key,$client_service,$content_type,$r_type,$http_method,$user_name,$password)
     {
     	$curl_data=array(
 			"auth-key: ".$auth_key,
 			"client-service: ".$client_service,
 			"content-type: ".$content_type
 		);
-    	$response=$this->curl_fun($url,$curl_data,$http_method);
+    	$response=$this->curl_fun($url,$curl_data,$http_method,$user_name,$password);
 
         if($response)
 		{
@@ -51,7 +59,7 @@ class Api_receiver{
 				$res=json_decode($response);
 				if($res->status=='200')
 				{
-					$sess_data=array('authorization'=>$res->authorization,'auth_key',$auth_key,'client_service'=>$client_service,'content_type'=>$content_type);
+					$sess_data=array('authorization'=>$res->authorization);
 					$_SESSION['api_session']=$sess_data;
 				}
 				else

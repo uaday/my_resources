@@ -20,16 +20,18 @@ class Welcome extends CI_Controller {
 	 */
 	public function index()
 	{
-	    $url='http://localhost/appinion_api_service_v2/Auth/login?username=adminQc&password=adminQc';
-	    $auth_key='523f260e015519f3a6da69f9ae1a94de';
+	    $url='http://localhost/qc_api/Auth/login';
+	    $auth_key='c74ead1dd8dc8ee8a99488453d38e371';
 	    $client_service='appinion-client';
-	    $content_type='application/x-www-form-urlencoded';
+	    $content_type='application/json';
 	    $r_type='object';
 		$http_method='POST';
-	    $result=$this->api_receiver->api_init($url,$auth_key,$client_service,$content_type,$r_type,$http_method);
+		$user_name='brac_qc';
+		$password='brac_qc_api';
+	    $result=$this->api_receiver->api_init($url,$auth_key,$client_service,$content_type,$r_type,$http_method,$user_name,$password);
 	    if($result=='200')
         {
-            echo $_SESSION['api_session']['token'];
+            echo $_SESSION['api_session']['authorization'];
 
         }
 		//$this->load->view('welcome_message');
